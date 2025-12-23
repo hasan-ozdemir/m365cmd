@@ -47,3 +47,7 @@ This repository hosts **m365cmd**, a portable PowerShell Core REPL for Microsoft
 - Secrets live in `m365cmd.config.json`; never commit real credentials.
 - Prefer delegated auth; use app-only creds only when required.
 - Add confirmation prompts for destructive actions and document any side effects.
+
+## Agent Workflow Rule
+
+- When a user request results in file updates, finish all work first, then create a **single** meaningful English `git commit` as the final step before replying with a summary.
