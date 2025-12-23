@@ -1,0 +1,20 @@
+[
+  "core-00-base.ps1",
+  "core-10-config.ps1",
+  "core-20-modules.ps1",
+  "core-30-parse.ps1",
+  "core-31-query.ps1",
+  "core-32-format.ps1",
+  "core-33-alias.ps1",
+  "core-34-mail.ps1",
+  "core-40-graph-context.ps1",
+  "core-41-graph-requests.ps1",
+  "core-42-graph-org.ps1",
+  "core-50-resolve-userdrive.ps1",
+  "core-51-resolve-appgroup.ps1",
+  "core-52-resolve-roleperm.ps1",
+  "core-60-auth.ps1",
+  "core-70-metadata.ps1",
+  "core-80-files.ps1",
+  "core-90-pp.ps1"
+]
