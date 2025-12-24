@@ -104,6 +104,7 @@ function Show-Help {
         "m365     Native CLI-compatible command group",
         "m365cli  CLI for Microsoft 365 bridge",
         "connection Saved connections manager",
+        "context  CLI context options (defaults)",
         "module   Module install/list/update/remove"
     )
 
@@ -700,6 +701,13 @@ function Show-Help {
             "connection use --name <name>",
             "connection set --name <name> --newName <newName>",
             "connection remove --name <name> [--force]"
+        )
+        "context" = @(
+            "context init",
+            "context remove [--force]",
+            "context option list",
+            "context option set --name <name> --value <value>",
+            "context option remove --name <name> [--force]"
         )
         "webhook" = @(
             "webhook listen [--port <n>] [--out <file>] [--once true|false] [--prefix <url>]",

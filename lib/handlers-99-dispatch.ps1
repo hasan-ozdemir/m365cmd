@@ -176,6 +176,7 @@ function Handle-LocalCommand {
         "graph"   { Handle-GraphCommand $InputArgs }
         "webhook" { Handle-WebhookCommand $InputArgs }
         "connection" { Handle-ConnectionCommand $InputArgs }
+        "context" { Handle-ContextCommand $InputArgs }
         default   { Write-Warn "Unknown command. Use /help." }
     }
 }

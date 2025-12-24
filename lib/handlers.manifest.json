@@ -59,5 +59,6 @@
   "handlers-57-security.ps1",
   "handlers-58-viva.ps1",
   "handlers-59-connection.ps1",
+  "handlers-60-context.ps1",
   "handlers-99-dispatch.ps1"
 ]
