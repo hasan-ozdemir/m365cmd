@@ -103,6 +103,7 @@ function Show-Help {
         "webhook  Local webhook listener helper",
         "m365     Native CLI-compatible command group",
         "m365cli  CLI for Microsoft 365 bridge",
+        "connection Saved connections manager",
         "module   Module install/list/update/remove"
     )
 
@@ -694,6 +695,12 @@ function Show-Help {
             "m365cli <m365 args...> (pass-through)"
         )
         "module"  = @("module list|install|update|remove <name>")
+        "connection" = @(
+            "connection list",
+            "connection use --name <name>",
+            "connection set --name <name> --newName <newName>",
+            "connection remove --name <name> [--force]"
+        )
         "webhook" = @(
             "webhook listen [--port <n>] [--out <file>] [--once true|false] [--prefix <url>]",
             "webhook start [--port <n>] [--out <file>] [--prefix <url>]",

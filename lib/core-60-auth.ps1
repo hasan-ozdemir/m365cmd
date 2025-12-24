@@ -16,6 +16,7 @@ function Invoke-Login {
             Connect-MgGraph -Scopes $scopes -ContextScope $contextScope | Out-Null
         }
         Write-Info "Connected to Microsoft Graph."
+        Register-GraphConnection
     } catch {
         Write-Err $_.Exception.Message
     }
@@ -30,6 +31,147 @@ function Invoke-Logout {
     } else {
         Write-Warn "Graph module is not loaded."
     }
+}
+
+
+function Get-ConnectionStorePath {
+    return (Join-Path $Paths.Data "connections.json")
+}
+
+
+function Load-Connections {
+    $path = Get-ConnectionStorePath
+    if (-not (Test-Path $path)) { return @() }
+    try {
+        $data = Get-Content -Raw -Path $path | ConvertFrom-Json
+        if ($null -eq $data) { return @() }
+        return @($data)
+    } catch {
+        Write-Warn "Connections file is invalid. Recreating on next save."
+        return @()
+    }
+}
+
+
+function Save-Connections {
+    param([object[]]$Items)
+    if ($null -eq $Items) { $Items = @() }
+    Ensure-Directories
+    $path = Get-ConnectionStorePath
+    $Items | ConvertTo-Json -Depth 6 | Set-Content -Path $path -Encoding ASCII
+}
+
+
+function Get-ConnectionByName {
+    param([string]$Name)
+    if (-not $Name) { return $null }
+    $list = Load-Connections
+    foreach ($c in $list) {
+        if ($c.name -eq $Name) { return $c }
+    }
+    return $null
+}
+
+
+function Get-ActiveConnection {
+    $list = Load-Connections
+    foreach ($c in $list) {
+        if ($c.active) { return $c }
+    }
+    return $null
+}
+
+
+function Set-ActiveConnectionByName {
+    param([string]$Name)
+    if (-not $Name) { return $false }
+    $list = Load-Connections
+    $found = $false
+    foreach ($c in $list) {
+        if ($c.name -eq $Name) {
+            $c.active = $true
+            $found = $true
+        } else {
+            $c.active = $false
+        }
+    }
+    if ($found) { Save-Connections $list }
+    return $found
+}
+
+
+function Rename-Connection {
+    param(
+        [string]$Name,
+        [string]$NewName
+    )
+    if (-not $Name -or -not $NewName) { return $false }
+    if ($Name -eq $NewName) { return $false }
+    $list = Load-Connections
+    foreach ($c in $list) {
+        if ($c.name -eq $Name) {
+            $c.name = $NewName
+            Save-Connections $list
+            return $true
+        }
+    }
+    return $false
+}
+
+
+function Remove-Connection {
+    param([string]$Name)
+    if (-not $Name) { return $false }
+    $list = Load-Connections
+    $newList = @($list | Where-Object { $_.name -ne $Name })
+    if ($newList.Count -eq $list.Count) { return $false }
+    Save-Connections $newList
+    return $true
+}
+
+
+function Register-GraphConnection {
+    param([string]$Name)
+    $ctx = Get-MgContextSafe
+    if (-not $ctx) { return $null }
+    $list = Load-Connections
+
+    $name = $Name
+    if (-not $name) {
+        if ($ctx.Account) { $name = $ctx.Account } else { $name = ("tenant-" + $ctx.TenantId) }
+    }
+    if (-not $name) { $name = ("conn-" + [guid]::NewGuid().ToString("n")) }
+
+    $entry = $null
+    foreach ($c in $list) {
+        if ($c.name -eq $name) { $entry = $c; break }
+    }
+    if (-not $entry) {
+        $entry = [pscustomobject]@{
+            name        = $name
+            connectedAs = $ctx.Account
+            authType    = "delegated"
+            tenantId    = $ctx.TenantId
+            scopes      = @($ctx.Scopes)
+            active      = $true
+            updatedAt   = (Get-Date).ToString("s")
+        }
+        $list += $entry
+    } else {
+        $entry.connectedAs = $ctx.Account
+        $entry.authType = "delegated"
+        $entry.tenantId = $ctx.TenantId
+        $entry.scopes = @($ctx.Scopes)
+        $entry.active = $true
+        $entry.updatedAt = (Get-Date).ToString("s")
+    }
+
+    foreach ($c in $list) {
+        if ($c.name -ne $entry.name) { $c.active = $false }
+    }
+
+    Save-Connections $list
+    return $entry
 }
 
 function Get-AppTenantId {

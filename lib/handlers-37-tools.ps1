@@ -286,59 +286,20 @@ function Get-M365CliCommandInventory {
     }
 
     $commandsFiles = Get-ChildItem -Path $root -Recurse -Filter "commands.ts"
-    $commandsMap = @{}
-    foreach ($cf in $commandsFiles) {
-        $commandsMap[$cf.FullName] = Parse-M365CliCommandsMap $cf.FullName
-    }
-
-    $commandFiles = Get-ChildItem -Path $root -Recurse -Filter "*.ts" |
-        Where-Object { $_.FullName -match '\\commands\\' -and $_.Name -ne "commands.ts" -and $_.Name -notmatch '\\.spec\\.ts$' }
-
     $items = @()
-    foreach ($file in $commandFiles) {
-        $commandsFile = Resolve-M365CliCommandsFile -StartDir $file.DirectoryName -RepoRoot $root
-        if (-not $commandsFile) { continue }
-        if (-not $commandsMap.ContainsKey($commandsFile)) { continue }
-
-        $lines = Get-Content -Path $file.FullName
-        $key = $null
-        foreach ($ln in $lines) {
-            if ($ln -match 'return\s+commands\.([A-Z0-9_]+)') {
-                $key = $matches[1]
-                break
+    foreach ($cf in $commandsFiles) {
+        $map = Parse-M365CliCommandsMap $cf.FullName
+        if (-not $map -or $map.Keys.Count -eq 0) { continue }
+        $area = Split-Path -Leaf (Split-Path -Parent $cf.FullName)
+        foreach ($key in $map.Keys) {
+            $cmdString = $map[$key]
+            if (-not $cmdString) { continue }
+            $items += [pscustomobject]@{
+                Command     = $cmdString
+                Description = $null
+                Area        = $area
+                SourceFile  = $cf.FullName
             }
-        }
-        if (-not $key) { continue }
-        $cmdString = $commandsMap[$commandsFile][$key]
-        if (-not $cmdString) { continue }
-
-        $desc = $null
-        for ($i = 0; $i -lt $lines.Count; $i++) {
-            if ($lines[$i] -match 'get\s+description') {
-                for ($j = $i; $j -lt [Math]::Min($lines.Count, $i + 20); $j++) {
-                    if ($lines[$j] -match 'return\s+''([^'']+)''') {
-                        $desc = $matches[1]
-                        break
-                    }
-                    if ($lines[$j] -match 'return\s+"([^"]+)"') {
-                        $desc = $matches[1]
-                        break
-                    }
-                    if ($lines[$j] -match 'return\s+`([^`]+)`') {
-                        $desc = $matches[1]
-                        break
-                    }
-                }
-            }
-            if ($desc) { break }
-        }
-
-        $area = Split-Path -Leaf (Split-Path -Parent $commandsFile)
-        $items += [pscustomobject]@{
-            Command     = $cmdString
-            Description = $desc
-            Area        = $area
-            SourceFile  = $file.FullName
         }
     }
 
