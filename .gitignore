@@ -1,0 +1,14 @@
+# Runtime artifacts
+m365cmd.config.json
+/data/
+/logs/
+/modules/
+/tools/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+
+# Local temp
+*.tmp
+*.log
