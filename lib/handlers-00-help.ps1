@@ -101,6 +101,19 @@ function Show-Help {
         "accessreview Access reviews (Identity Governance)",
         "graph    Graph cmdlets, metadata, generic CRUD",
         "webhook  Local webhook listener helper",
+        "adaptivecard Adaptive card webhooks",
+        "cli      CLI-style config and setup",
+        "docs     Open CLI docs",
+        "request  Raw Graph request (alias to graph req)",
+        "version  Show version info",
+        "setup    Configure defaults",
+        "util     Utility commands",
+        "external External connections/items",
+        "flow     Power Automate (flow) commands",
+        "pa       Power Apps commands",
+        "spe      SharePoint Embedded (SPE)",
+        "spp      SharePoint Premium",
+        "spfx     SharePoint Framework",
         "m365     Native CLI-compatible command group",
         "m365cli  CLI for Microsoft 365 bridge",
         "connection Saved connections manager",
@@ -714,6 +727,59 @@ function Show-Help {
             "webhook start [--port <n>] [--out <file>] [--prefix <url>]",
             "webhook stop",
             "webhook status"
+        )
+        "adaptivecard" = @(
+            "adaptivecard send --url <webhookUrl> [--title <t>] [--description <d>] [--imageUrl <url>] [--actionUrl <url>] [--card <json>] [--cardData <json>] [--facts k=v,k=v]"
+        )
+        "cli" = @(
+            "cli config list|get|set|reset",
+            "cli app add|reconsent [--name <name>] [--scopes minimal|all|url,url] [--saveToConfig true]",
+            "cli completion pwsh|sh setup|update",
+            "cli consent --appId <id>",
+            "cli doctor",
+            "cli issue [--open]"
+        )
+        "docs" = @(
+            "docs (open CLI docs)"
+        )
+        "request" = @(
+            "request <get|post|patch|put|delete> <url|path> [--body <json>] [--bodyFile <path>] [--headers <json>] [--beta|--v1|--auto] [--out <file>]"
+        )
+        "version" = @("version")
+        "setup" = @(
+            "setup [--interactive] [--scripting] [--skipApp] [--clientId <id>] [--tenantId <id|domain>] [--clientSecret <secret>]"
+        )
+        "util" = @(
+            "util accesstoken get --resource <graph|sharepoint|url> [--new] [--decoded]"
+        )
+        "external" = @(
+            "external connection list|get|add|remove|schema|urltoitemresolver|doctor",
+            "external item add --connection <id> --id <itemId> --json <payload>"
+        )
+        "flow" = @(
+            "flow environment list|get",
+            "flow list|get|enable|disable|remove",
+            "flow run list|get|cancel|resubmit",
+            "flow owner list|ensure|remove",
+            "flow recyclebinitem list|restore"
+        )
+        "pa" = @(
+            "pa environment list|get",
+            "pa app list|get|remove",
+            "pa connector list"
+        )
+        "spe" = @(
+            "spe containertype list|get|add|remove",
+            "spe container list|get|add|remove|activate|permission|recyclebinitem"
+        )
+        "spp" = @(
+            "spp contentcenter list",
+            "spp model list|get|apply|remove --siteUrl <url>"
+        )
+        "spfx" = @(
+            "spfx doctor",
+            "spfx package generate",
+            "spfx project doctor|rename|upgrade|externalize|github|azuredevops|permissions"
         )
         "tenant"  = @("/tenant show", "/tenant set prefix <value>", "/tenant set domain <value>", "/tenant set id <value>")
         "config"  = @("/config show", "/config get <path>", "/config set <path> <json-or-text>")

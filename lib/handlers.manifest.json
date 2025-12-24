@@ -60,5 +60,15 @@
   "handlers-58-viva.ps1",
   "handlers-59-connection.ps1",
   "handlers-60-context.ps1",
+  "handlers-61-adaptivecard.ps1",
+  "handlers-62-cli.ps1",
+  "handlers-63-util.ps1",
+  "handlers-64-external.ps1",
+  "handlers-65-flow.ps1",
+  "handlers-66-pa.ps1",
+  "handlers-67-spe.ps1",
+  "handlers-68-spp.ps1",
+  "handlers-69-spfx.ps1",
+  "handlers-70-commands.ps1",
   "handlers-99-dispatch.ps1"
 ]

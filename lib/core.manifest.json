@@ -15,6 +15,7 @@
   "core-52-resolve-roleperm.ps1",
   "core-60-auth.ps1",
   "core-61-context.ps1",
+  "core-62-tokens.ps1",
   "core-70-metadata.ps1",
   "core-80-files.ps1",
   "core-90-pp.ps1"

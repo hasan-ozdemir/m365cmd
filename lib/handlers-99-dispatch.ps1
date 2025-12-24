@@ -88,6 +88,13 @@ function Handle-LocalCommand {
         "admin"   { Handle-AdminPortalCommand $InputArgs }
         "m365cli" { Handle-M365CliCommand $InputArgs }
         "m365"    { Handle-M365Command $InputArgs }
+        "docs"    { Handle-DocsCommand }
+        "request" { Handle-RequestCommand $InputArgs }
+        "version" { Handle-VersionCommand }
+        "setup"   { Handle-SetupCommand $InputArgs }
+        "login"   { Invoke-Login ($InputArgs | Select-Object -First 1) }
+        "logout"  { Invoke-Logout }
+        "status"  { Show-Status }
         "user"    { Handle-UserCommand $InputArgs }
         "license" { Handle-LicenseCommand $InputArgs }
         "role"    { Handle-RoleCommand $InputArgs }
@@ -177,6 +184,15 @@ function Handle-LocalCommand {
         "webhook" { Handle-WebhookCommand $InputArgs }
         "connection" { Handle-ConnectionCommand $InputArgs }
         "context" { Handle-ContextCommand $InputArgs }
+        "adaptivecard" { Handle-AdaptiveCardCommand $InputArgs }
+        "cli" { Handle-CliCommand $InputArgs }
+        "util" { Handle-UtilCommand $InputArgs }
+        "external" { Handle-ExternalCommand $InputArgs }
+        "flow" { Handle-FlowCommand $InputArgs }
+        "pa" { Handle-PaCommand $InputArgs }
+        "spe" { Handle-SpeCommand $InputArgs }
+        "spp" { Handle-SppCommand $InputArgs }
+        "spfx" { Handle-SpfxCommand $InputArgs }
         default   { Write-Warn "Unknown command. Use /help." }
     }
 }

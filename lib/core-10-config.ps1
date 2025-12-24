@@ -91,6 +91,7 @@ function Get-DefaultConfig {
         )
             loginMode    = "interactive"
             contextScope = "CurrentUser"
+            publicClientId = "04f0c124-f2bc-4f4b-8c20-74bf17c5a1f9"
             app = [ordered]@{
                 clientId     = ""
                 clientSecret = ""
@@ -296,6 +297,10 @@ function Normalize-Config {
                 $changed = $true
             }
         }
+    }
+    if (-not $Config.auth.publicClientId) {
+        $Config.auth.publicClientId = $defaults.auth.publicClientId
+        $changed = $true
     }
 
     foreach ($key in @("manageApiBase", "publisherId")) {
