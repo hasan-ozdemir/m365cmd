@@ -8,6 +8,7 @@ function Handle-GlobalCommand {
     switch ($Cmd) {
         "help"   { Show-Help ($Args | Select-Object -First 1) }
         "exit"   { return $false }
+        "quit"   { return $false }
         "clear"  { Clear-Host }
         "status" { Show-Status }
         "login"  { Invoke-Login ($Args | Select-Object -First 1) }

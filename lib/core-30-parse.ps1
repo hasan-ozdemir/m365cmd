@@ -12,7 +12,7 @@ function Parse-Value {
 
 function Split-Args {
     param([string]$Line)
-    $pattern = '("[^"]*"|''[^'']*''|\\S+)'
+    $pattern = '("[^"]*"|''[^'']*''|\S+)'
     $matches = [regex]::Matches($Line, $pattern)
     $parts = @()
     foreach ($m in $matches) {

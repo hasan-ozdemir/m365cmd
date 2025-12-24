@@ -27,6 +27,13 @@ Describe "REPL and parsing" {
         $parsed.Positionals[0] | Should -Be "pos1"
     }
 
+    It "splits args into tokens" {
+        $parts = Split-Args "user list"
+        $parts.Count | Should -Be 2
+        $parts[0] | Should -Be "user"
+        $parts[1] | Should -Be "list"
+    }
+
     It "expands aliases" {
         $expanded = Expand-AliasCommand -Cmd "u" -Args @("list") -IsGlobal:$false
         $expanded.Count | Should -BeGreaterThan 0

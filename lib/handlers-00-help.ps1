@@ -5,6 +5,7 @@ function Show-Help {
     $globalHelp = @(
         "/help [topic]        Show help for commands",
         "/exit                Exit m365cmd",
+        "/quit                Exit m365cmd",
         "/clear               Clear the screen",
         "/status              Show connection and config status",
         "/login [interactive|device]  Login to Microsoft Graph",
