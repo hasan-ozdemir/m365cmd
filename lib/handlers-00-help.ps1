@@ -676,6 +676,8 @@ function Show-Help {
         )
         "m365cli" = @(
             "m365cli status|install|path",
+            "m365cli source path|clone|update",
+            "m365cli inventory [--refresh] [--area <name>] [--filter <text>] [--json]",
             "m365cli app list|set|remove|show|run",
             "m365cli run <m365 args...>",
             "m365cli <m365 args...> (pass-through)"

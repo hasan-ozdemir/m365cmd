@@ -20,7 +20,7 @@ function Get-M365CliPath {
 function Handle-M365CliCommand {
     param([string[]]$Args)
     if (-not $Args -or $Args.Count -eq 0) {
-        Write-Warn "Usage: m365cli status|install|path|app|run <args...> OR m365cli <m365 args...>"
+        Write-Warn "Usage: m365cli status|install|path|app|run|inventory|source <args...> OR m365cli <m365 args...>"
         return
     }
     $sub = $Args[0].ToLowerInvariant()
@@ -64,6 +64,12 @@ function Handle-M365CliCommand {
         }
         "app" {
             Handle-M365CliAppCommand $rest
+        }
+        "source" {
+            Handle-M365CliSourceCommand $rest
+        }
+        "inventory" {
+            Handle-M365CliInventoryCommand $rest
         }
         "run" {
             $path = Get-M365CliPath
@@ -198,5 +204,242 @@ function Handle-M365CliAppCommand {
         default {
             Write-Warn "Usage: m365cli app list|set|remove|show|run"
         }
+    }
+}
+
+
+function Get-M365CliRepoPath {
+    return (Join-Path $Paths.Tools "cli-microsoft365")
+}
+
+
+function Get-M365CliInventoryPath {
+    return (Join-Path $Paths.Data "m365cli.inventory.json")
+}
+
+
+function Resolve-M365CliCommandsFile {
+    param([string]$StartDir, [string]$RepoRoot)
+    $dir = $StartDir
+    while ($dir -and ($dir -like (Join-Path $RepoRoot "*"))) {
+        $candidate = Join-Path $dir "commands.ts"
+        if (Test-Path $candidate) { return $candidate }
+        $parent = Split-Path -Parent $dir
+        if ($parent -eq $dir) { break }
+        $dir = $parent
+    }
+    return $null
+}
+
+
+function Parse-M365CliCommandsMap {
+    param([string]$CommandsFile)
+    $vars = @{}
+    $map = @{}
+    $lines = Get-Content -Path $CommandsFile
+    foreach ($line in $lines) {
+        if ($line -match '^\s*const\s+([A-Za-z0-9_]+)\s*(?::\s*string)?\s*=\s*''([^'']+)''') {
+            $vars[$matches[1]] = $matches[2]
+            continue
+        }
+        if ($line -match '^\s*const\s+([A-Za-z0-9_]+)\s*(?::\s*string)?\s*=\s*"([^"]+)"') {
+            $vars[$matches[1]] = $matches[2]
+            continue
+        }
+        if ($line -match '^\s*const\s+([A-Za-z0-9_]+)\s*(?::\s*string)?\s*=\s*`([^`]+)`') {
+            $vars[$matches[1]] = $matches[2]
+            continue
+        }
+
+        $key = $null
+        $val = $null
+        if ($line -match '^\s*([A-Z0-9_]+)\s*:\s*''([^'']+)''') {
+            $key = $matches[1]
+            $val = $matches[2]
+        } elseif ($line -match '^\s*([A-Z0-9_]+)\s*:\s*"([^"]+)"') {
+            $key = $matches[1]
+            $val = $matches[2]
+        } elseif ($line -match '^\s*([A-Z0-9_]+)\s*:\s*`([^`]+)`') {
+            $key = $matches[1]
+            $val = $matches[2]
+        }
+        if ($key) {
+            foreach ($vk in $vars.Keys) {
+                $pattern = [regex]::Escape('${' + $vk + '}')
+                $val = $val -replace $pattern, $vars[$vk]
+            }
+            $map[$key] = $val
+        }
+    }
+    return $map
+}
+
+
+function Get-M365CliCommandInventory {
+    param([string]$RepoPath)
+    $root = Join-Path $RepoPath "src\\m365"
+    if (-not (Test-Path $root)) {
+        throw "CLI repo not found at: $RepoPath"
+    }
+
+    $commandsFiles = Get-ChildItem -Path $root -Recurse -Filter "commands.ts"
+    $commandsMap = @{}
+    foreach ($cf in $commandsFiles) {
+        $commandsMap[$cf.FullName] = Parse-M365CliCommandsMap $cf.FullName
+    }
+
+    $commandFiles = Get-ChildItem -Path $root -Recurse -Filter "*.ts" |
+        Where-Object { $_.FullName -match '\\commands\\' -and $_.Name -ne "commands.ts" -and $_.Name -notmatch '\\.spec\\.ts$' }
+
+    $items = @()
+    foreach ($file in $commandFiles) {
+        $commandsFile = Resolve-M365CliCommandsFile -StartDir $file.DirectoryName -RepoRoot $root
+        if (-not $commandsFile) { continue }
+        if (-not $commandsMap.ContainsKey($commandsFile)) { continue }
+
+        $lines = Get-Content -Path $file.FullName
+        $key = $null
+        foreach ($ln in $lines) {
+            if ($ln -match 'return\s+commands\.([A-Z0-9_]+)') {
+                $key = $matches[1]
+                break
+            }
+        }
+        if (-not $key) { continue }
+        $cmdString = $commandsMap[$commandsFile][$key]
+        if (-not $cmdString) { continue }
+
+        $desc = $null
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match 'get\s+description') {
+                for ($j = $i; $j -lt [Math]::Min($lines.Count, $i + 20); $j++) {
+                    if ($lines[$j] -match 'return\s+''([^'']+)''') {
+                        $desc = $matches[1]
+                        break
+                    }
+                    if ($lines[$j] -match 'return\s+"([^"]+)"') {
+                        $desc = $matches[1]
+                        break
+                    }
+                    if ($lines[$j] -match 'return\s+`([^`]+)`') {
+                        $desc = $matches[1]
+                        break
+                    }
+                }
+            }
+            if ($desc) { break }
+        }
+
+        $area = Split-Path -Leaf (Split-Path -Parent $commandsFile)
+        $items += [pscustomobject]@{
+            Command     = $cmdString
+            Description = $desc
+            Area        = $area
+            SourceFile  = $file.FullName
+        }
+    }
+
+    return ($items | Sort-Object Command -Unique)
+}
+
+
+function Handle-M365CliSourceCommand {
+    param([string[]]$Args)
+    $action = if ($Args.Count -gt 0) { $Args[0].ToLowerInvariant() } else { "" }
+    $repo = Get-M365CliRepoPath
+    switch ($action) {
+        "path" {
+            Write-Host $repo
+        }
+        "clone" {
+            if (Test-Path $repo) {
+                Write-Warn "Repo already exists: $repo"
+                return
+            }
+            $git = Get-Command -Name "git" -ErrorAction SilentlyContinue
+            if (-not $git) {
+                Write-Warn "git not found. Install Git first."
+                return
+            }
+            Ensure-Directories
+            Write-Info "Cloning CLI for Microsoft 365 source..."
+            & $git.Source "clone" "--depth" "1" "https://github.com/pnp/cli-microsoft365" $repo
+        }
+        "update" {
+            if (-not (Test-Path $repo)) {
+                Write-Warn "Repo not found. Use: m365cli source clone"
+                return
+            }
+            $git = Get-Command -Name "git" -ErrorAction SilentlyContinue
+            if (-not $git) {
+                Write-Warn "git not found. Install Git first."
+                return
+            }
+            Write-Info "Updating CLI source..."
+            & $git.Source "-C" $repo "pull"
+        }
+        default {
+            Write-Warn "Usage: m365cli source path|clone|update"
+        }
+    }
+}
+
+
+function Load-M365CliInventory {
+    $path = Get-M365CliInventoryPath
+    if (-not (Test-Path $path)) { return @() }
+    try {
+        $data = Get-Content -Raw -Path $path | ConvertFrom-Json
+        return @($data)
+    } catch {
+        Write-Warn "Inventory file is invalid. Rebuilding required."
+        return @()
+    }
+}
+
+
+function Save-M365CliInventory {
+    param([object[]]$Items)
+    Ensure-Directories
+    $path = Get-M365CliInventoryPath
+    $Items | ConvertTo-Json -Depth 6 | Set-Content -Path $path -Encoding ASCII
+}
+
+
+function Handle-M365CliInventoryCommand {
+    param([string[]]$Args)
+    $parsed = Parse-NamedArgs $Args
+    $refresh = Parse-Bool (Get-ArgValue $parsed.Map "refresh") $false
+    $area = Get-ArgValue $parsed.Map "area"
+    $filter = Get-ArgValue $parsed.Map "filter"
+    $asJson = Parse-Bool (Get-ArgValue $parsed.Map "json") $false
+
+    $repo = Get-M365CliRepoPath
+    $inventory = @()
+
+    if ($refresh -or -not (Test-Path (Get-M365CliInventoryPath))) {
+        if (-not (Test-Path $repo)) {
+            Write-Warn "CLI source not found. Use: m365cli source clone"
+            return
+        }
+        Write-Info "Building CLI command inventory..."
+        $inventory = Get-M365CliCommandInventory -RepoPath $repo
+        Save-M365CliInventory $inventory
+    } else {
+        $inventory = Load-M365CliInventory
+    }
+
+    if ($area) {
+        $inventory = $inventory | Where-Object { $_.Area -eq $area }
+    }
+    if ($filter) {
+        $inventory = $inventory | Where-Object { $_.Command -like "*$filter*" }
+    }
+
+    if ($asJson) {
+        $inventory | ConvertTo-Json -Depth 6
+    } else {
+        $inventory | Select-Object Command, Description, Area | Format-Table -AutoSize
+        Write-Host ("Total commands: " + ($inventory | Measure-Object).Count)
     }
 }
