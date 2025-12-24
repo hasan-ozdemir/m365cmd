@@ -29,7 +29,6 @@ A portable, modular PowerShell Core REPL for Microsoft 365 administration and wo
 - [Configuration](#configuration)
 - [Modules and dependencies](#modules-and-dependencies)
 - [Microsoft Graph v1 vs beta](#microsoft-graph-v1-vs-beta)
-- [Microsoft 365 CLI bridge](#microsoft-365-cli-bridge)
 - [Data, logs, and portability](#data-logs-and-portability)
 - [Testing](#testing)
 - [Development](#development)
@@ -57,7 +56,6 @@ m365cmd is a **PowerShell Core 7+ REPL** that unifies:
 - Files, OneDrive, SharePoint, Teams messages, mail, calendar, tasks, OneNote, Planner
 - Power Platform admin helpers
 - Viva, Purview, Defender, and compliance areas (as far as public APIs allow)
-- Optional CLI for Microsoft 365 bridge for expanded coverage
 
 ---
 
@@ -107,7 +105,7 @@ m365cmd is organized as a small runtime (REPL + loaders) and a set of modular bu
     handlers-*.ps1          # Command handlers (see below)
     core.manifest.json      # Core module load order
     handlers.manifest.json  # Handler module load order
-    apps.catalog.json       # App portal/CLI catalog
+    apps.catalog.json       # App portal/command catalog
 
   tests/
     Run-Tests.ps1            # Test runner (Pester)
@@ -252,7 +250,7 @@ Use `/help` for the live command list. Highlights include:
 
 - PowerShell Core 7+
 - Internet access for Graph and module installs
-- Optional: Node.js 20+ (LTS recommended) for CLI for Microsoft 365 integration
+- Optional: Node.js 18+ (LTS recommended) for SPFx project packaging commands
 
 ---
 
@@ -285,7 +283,7 @@ chmod +x ./m365cmd.sh
 If needed, you can also run directly with PowerShell Core:
 
 ```bash
-pwsh -NoProfile -File ./m365cmd-main.ps1
+Powershell Core -NoProfile -File ./m365cmd-main.ps1
 ```
 
 Inside the REPL:
@@ -396,19 +394,27 @@ Use `/help` or `/help <topic>` for full command lists.
 
 ## Apps catalog
 
-`apps` is a lightweight catalog for one-liners that open app portals or route to a CLI bridge.
+`apps` is a lightweight catalog for one-liners that open app portals or route to command mappings.
 
 ```text
 apps list
 apps get copilot
 apps open sharepoint
-apps cli powerapps --cmd "m365 pp" <args...>
+apps map set powerapps --cmd "powerapps app list"
+apps run powerapps
+apps cli powerapps --cmd "powerapps app list"
 ```
 
 Catalog file:
 
 ```
 lib/apps.catalog.json
+```
+
+Mappings are stored in:
+
+```
+data/appmap.json
 ```
 
 ---
@@ -481,38 +487,6 @@ Install-Module Microsoft.Graph.Beta
 
 ---
 
-## Microsoft 365 CLI bridge
-
-m365cmd can optionally bridge to the **CLI for Microsoft 365**.
-
-Install the CLI for Microsoft 365:
-
-```text
-npm install -g @pnp/cli-microsoft365
-```
-
-Or via Yarn:
-
-```text
-yarn global add @pnp/cli-microsoft365
-```
-
-Notes:
-- The CLI for Microsoft 365 is distributed as an npm package and uses the `m365` executable.
-- The `o365` alias was removed in CLI v3; use `m365` instead.
-- The CLI is tested with Node.js 20+ and Node.js LTS is recommended.
-
-m365cmd commands:
-
-```text
-m365cli install
-m365cli status
-m365cli app set sharepoint --cmd "m365 spo"
-apps cli sharepoint site list
-```
-
----
-
 ## Data, logs, and portability
 
 This project is designed to be **portable**:
@@ -531,25 +505,25 @@ Pester is used as the test framework.
 ### Basic tests
 
 ```powershell
-pwsh -NoProfile -File .\tests\Run-Tests.ps1
+Powershell Core -NoProfile -File .\tests\Run-Tests.ps1
 ```
 
 ### Include module checks
 
 ```powershell
-pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Modules
+Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Modules
 ```
 
 ### Integration tests (requires /login)
 
 ```powershell
-pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Integration
+Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Integration
 ```
 
 ### Write tests (creates + deletes data)
 
 ```powershell
-pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Write
+Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Write
 ```
 
 Write tests create temporary objects (groups, apps, folders, todo lists, events) and delete them automatically.
@@ -617,8 +591,6 @@ This project is a community contribution by **Senior lead software engineer Hasa
 
 - Microsoft Graph PowerShell SDK installation: https://learn.microsoft.com/en-us/graph/sdks/sdk-installation
 - Microsoft Graph beta guidance: https://learn.microsoft.com/en-us/graph/sdks/use-beta
-- CLI for Microsoft 365 repository: https://github.com/pnp/cli-microsoft365
-- CLI for Microsoft 365 v3 upgrade notes (o365 alias removed): https://pnp.github.io/cli-microsoft365/v3-upgrade-guidance/
 - Pester documentation: https://pester.dev/docs/quick-start
 
 ---

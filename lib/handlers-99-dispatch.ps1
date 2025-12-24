@@ -86,7 +86,6 @@ function Handle-LocalCommand {
     switch ($Cmd) {
         "module"  { Handle-ModuleCommand $InputArgs }
         "admin"   { Handle-AdminPortalCommand $InputArgs }
-        "m365cli" { Handle-M365CliCommand $InputArgs }
         "m365"    { Handle-M365Command $InputArgs }
         "docs"    { Handle-DocsCommand }
         "request" { Handle-RequestCommand $InputArgs }

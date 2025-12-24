@@ -97,7 +97,7 @@ function Handle-SpfxCommand {
                     $pkg = $info.Package
                     $pkg.name = $name
                     $pkg | ConvertTo-Json -Depth 6 | Set-Content -Path $info.Path -Encoding ASCII
-                    $solutionPath = Join-Path (Split-Path -Parent $info.Path) "config\\package-solution.json"
+                    $solutionPath = Join-Path (Join-Path (Split-Path -Parent $info.Path) "config") "package-solution.json"
                     if (Test-Path $solutionPath) {
                         try {
                             $sol = Get-Content -Raw -Path $solutionPath | ConvertFrom-Json
@@ -108,19 +108,195 @@ function Handle-SpfxCommand {
                     Write-Info "Project renamed."
                 }
                 "upgrade" {
-                    Write-Warn "spfx project upgrade is not implemented yet."
+                    $version = Get-ArgValue $parsed2.Map "version"
+                    if (-not $version) { $version = Get-ArgValue $parsed2.Map "to" }
+                    if (-not $version) {
+                        Write-Warn "Usage: spfx project upgrade --version <spfxVersion>"
+                        return
+                    }
+                    $info = Get-SpfxProjectInfo
+                    if (-not $info) {
+                        Write-Warn "package.json not found."
+                        return
+                    }
+                    $pkg = $info.Package
+                    $updated = @()
+                    foreach ($section in @("dependencies","devDependencies")) {
+                        $deps = $pkg.$section
+                        if ($deps) {
+                            foreach ($p in @($deps.PSObject.Properties)) {
+                                if ($p.Name -like "@microsoft/sp-*") {
+                                    $deps.$($p.Name) = $version
+                                    $updated += ($section + ":" + $p.Name)
+                                }
+                            }
+                        }
+                    }
+                    $pkg | ConvertTo-Json -Depth 10 | Set-Content -Path $info.Path -Encoding ASCII
+                    if ($updated.Count -gt 0) {
+                        Write-Info ("Updated " + $updated.Count + " SPFx dependencies to " + $version)
+                    } else {
+                        Write-Warn "No SPFx dependencies found to update."
+                    }
                 }
                 "externalize" {
-                    Write-Warn "spfx project externalize is not implemented yet."
+                    $cdn = Get-ArgValue $parsed2.Map "cdnBasePath"
+                    $includeAssetsRaw = Get-ArgValue $parsed2.Map "includeClientSideAssets"
+                    if (-not $cdn) {
+                        Write-Warn "Usage: spfx project externalize --cdnBasePath <url> [--includeClientSideAssets true|false]"
+                        return
+                    }
+                    $includeAssets = if ($null -eq $includeAssetsRaw) { $false } else { Parse-Bool $includeAssetsRaw $false }
+                    $info = Get-SpfxProjectInfo
+                    if (-not $info) {
+                        Write-Warn "package.json not found."
+                        return
+                    }
+                    $solutionPath = Join-Path (Join-Path (Split-Path -Parent $info.Path) "config") "package-solution.json"
+                    if (-not (Test-Path $solutionPath)) {
+                        Write-Warn "package-solution.json not found."
+                        return
+                    }
+                    try {
+                        $sol = Get-Content -Raw -Path $solutionPath | ConvertFrom-Json
+                    } catch {
+                        Write-Warn "package-solution.json is invalid."
+                        return
+                    }
+                    if (-not $sol.solution) { Write-Warn "solution block missing."; return }
+                    $sol.solution.cdnBasePath = $cdn
+                    $sol.solution.includeClientSideAssets = $includeAssets
+                    $sol | ConvertTo-Json -Depth 10 | Set-Content -Path $solutionPath -Encoding ASCII
+                    Write-Info "package-solution.json updated for externalized assets."
                 }
                 "github" {
-                    Write-Warn "spfx project github workflow add is not implemented yet."
+                    $path = Get-ArgValue $parsed2.Map "path"
+                    if (-not $path) {
+                        $path = Join-Path (Join-Path (Join-Path (Get-Location) ".github") "workflows") "spfx-build.yml"
+                    }
+                    $force = Parse-Bool (Get-ArgValue $parsed2.Map "force") $false
+                    $node = Get-ArgValue $parsed2.Map "nodeVersion"
+                    if (-not $node) { $node = "18.x" }
+                    if ((Test-Path $path) -and -not $force) {
+                        Write-Warn "Workflow already exists. Use --force to overwrite."
+                        return
+                    }
+                    $dir = Split-Path -Parent $path
+                    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+                    $content = @"
+name: SPFx Build
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '$node'
+      - run: npm ci
+      - run: npx gulp bundle --ship
+      - run: npx gulp package-solution --ship
+"@
+                    $content | Set-Content -Path $path -Encoding ASCII
+                    Write-Info ("GitHub workflow written: " + $path)
                 }
                 "azuredevops" {
-                    Write-Warn "spfx project azuredevops pipeline add is not implemented yet."
+                    $path = Get-ArgValue $parsed2.Map "path"
+                    if (-not $path) { $path = Join-Path (Get-Location) "azure-pipelines.yml" }
+                    $force = Parse-Bool (Get-ArgValue $parsed2.Map "force") $false
+                    $node = Get-ArgValue $parsed2.Map "nodeVersion"
+                    if (-not $node) { $node = "18.x" }
+                    $branch = Get-ArgValue $parsed2.Map "branch"
+                    if (-not $branch) { $branch = "main" }
+                    if ((Test-Path $path) -and -not $force) {
+                        Write-Warn "Pipeline already exists. Use --force to overwrite."
+                        return
+                    }
+                    $content = @"
+trigger:
+- $branch
+pool:
+  vmImage: 'ubuntu-latest'
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '$node'
+- script: npm ci
+  displayName: Install dependencies
+- script: npx gulp bundle --ship
+  displayName: Bundle
+- script: npx gulp package-solution --ship
+  displayName: Package
+"@
+                    $content | Set-Content -Path $path -Encoding ASCII
+                    Write-Info ("Azure DevOps pipeline written: " + $path)
                 }
                 "permissions" {
-                    Write-Warn "spfx project permissions grant is not implemented yet."
+                    if (-not $rest2 -or $rest2.Count -eq 0) {
+                        Write-Warn "Usage: spfx project permissions list|grant [--force]"
+                        return
+                    }
+                    $permAction = $rest2[0].ToLowerInvariant()
+                    $info = Get-SpfxProjectInfo
+                    if (-not $info) { Write-Warn "package.json not found."; return }
+                    $solutionPath = Join-Path (Join-Path (Split-Path -Parent $info.Path) "config") "package-solution.json"
+                    if (-not (Test-Path $solutionPath)) { Write-Warn "package-solution.json not found."; return }
+                    try {
+                        $sol = Get-Content -Raw -Path $solutionPath | ConvertFrom-Json
+                    } catch {
+                        Write-Warn "package-solution.json is invalid."
+                        return
+                    }
+                    $requests = @()
+                    if ($sol.solution -and $sol.solution.webApiPermissionRequests) {
+                        $requests = @($sol.solution.webApiPermissionRequests)
+                    }
+                    if ($requests.Count -eq 0) {
+                        Write-Info "No webApiPermissionRequests found."
+                        return
+                    }
+                    if ($permAction -eq "list") {
+                        $requests | ForEach-Object {
+                            [pscustomobject]@{ Resource = $_.resource; Scope = $_.scope }
+                        } | Format-Table -AutoSize
+                        return
+                    }
+                    if ($permAction -ne "grant") {
+                        Write-Warn "Usage: spfx project permissions list|grant [--force]"
+                        return
+                    }
+                    if (-not (Require-SpoConnection)) { return }
+                    if (-not (Get-Command Get-SPOTenantServicePrincipalPermissionRequests -ErrorAction SilentlyContinue)) {
+                        Write-Warn "SPOTenantServicePrincipalPermissionRequests cmdlets not available. Update the SPO module."
+                        return
+                    }
+                    $pending = @(Get-SPOTenantServicePrincipalPermissionRequests)
+                    $matches = @()
+                    foreach ($req in $requests) {
+                        $matches += @($pending | Where-Object { $_.Resource -eq $req.resource -and $_.Scope -eq $req.scope })
+                    }
+                    if ($matches.Count -eq 0) {
+                        Write-Warn "No matching pending permission requests found."
+                        return
+                    }
+                    $force = Parse-Bool (Get-ArgValue $parsed2.Map "force") $false
+                    if (-not $force) {
+                        $confirm = Read-Host ("Approve " + $matches.Count + " permission request(s)? (y/N)")
+                        if ($confirm.ToLowerInvariant() -notin @("y","yes")) { Write-Info "Canceled."; return }
+                    }
+                    foreach ($m in $matches) {
+                        try {
+                            Approve-SPOTenantServicePrincipalPermissionRequest -RequestId $m.Id | Out-Null
+                            Write-Info ("Approved: " + $m.Resource + " / " + $m.Scope)
+                        } catch {
+                            Write-Err $_.Exception.Message
+                        }
+                    }
                 }
                 default {
                     Write-Warn "Usage: spfx project doctor|rename|upgrade|externalize|github|azuredevops|permissions"

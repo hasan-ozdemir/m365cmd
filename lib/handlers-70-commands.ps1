@@ -1,9 +1,12 @@
 # Handler: Commands
 # Purpose: Top-level CLI-like commands.
 function Handle-DocsCommand {
-    $url = "https://pnp.github.io/cli-microsoft365/"
-    Write-Host ("Docs: " + $url)
-    try { Start-Process $url | Out-Null } catch {}
+    $root = if ($env:M365CMD_ROOT) { $env:M365CMD_ROOT } else { (Split-Path -Parent $PSScriptRoot) }
+    $path = Join-Path $root "README.md"
+    Write-Host ("Docs: " + $path)
+    if (Test-Path $path) {
+        try { Start-Process $path | Out-Null } catch {}
+    }
 }
 
 

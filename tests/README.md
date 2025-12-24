@@ -3,19 +3,19 @@
 ## How to run
 
 - Basic sanity tests:
-  - `pwsh -NoProfile -File .\tests\Run-Tests.ps1`
+  - `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1`
 
 - Include module availability checks:
-  - `pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Modules`
+  - `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Modules`
 
 - Include integration tests (requires `/login` in m365cmd):
-  - `pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Integration`
+  - `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Integration`
 
 - Include integration + write tests (creates and deletes test data):
-  - `pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Write`
+  - `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Write`
 
 - Install Pester automatically if missing:
-  - `pwsh -NoProfile -File .\tests\Run-Tests.ps1 -InstallPester`
+  - `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -InstallPester`
 
 ## Notes
 - Module and integration tests are tagged and skipped by default.

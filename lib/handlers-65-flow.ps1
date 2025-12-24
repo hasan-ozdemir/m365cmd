@@ -48,6 +48,56 @@ function Invoke-FlowRequest {
 }
 
 
+function Invoke-PpRequestRaw {
+    param(
+        [string]$Method,
+        [string]$Path,
+        [object]$Body,
+        [string]$ApiVersion
+    )
+    $token = Get-PpToken
+    if (-not $token) {
+        Write-Warn "Power Platform token missing. Use pp login or configure auth.app.*"
+        return $null
+    }
+    $base = $global:Config.pp.baseUrl.TrimEnd("/")
+    $url = if ($Path -match "^https?://") { $Path } else { $base + $Path }
+    $apiVer = if ($ApiVersion) { $ApiVersion } else { $global:Config.pp.apiVersion }
+    if ($url -notmatch "api-version=") {
+        $join = if ($url -match "\\?") { "&" } else { "?" }
+        $url = $url + $join + "api-version=" + $apiVer
+    }
+    $hdr = @{ Authorization = "Bearer " + $token; accept = "application/json" }
+    $params = @{ Method = $Method; Uri = $url; Headers = $hdr; ContentType = "application/json" }
+    if ($Body -ne $null) { $params.Body = ($Body | ConvertTo-Json -Depth 10) }
+    $respHeaders = $null
+    try {
+        $bodyOut = Invoke-RestMethod @params -ResponseHeadersVariable respHeaders
+        return [pscustomobject]@{ Body = $bodyOut; Headers = $respHeaders }
+    } catch {
+        Write-Err $_.Exception.Message
+        return $null
+    }
+}
+
+
+function Resolve-OutputFilePath {
+    param(
+        [string]$Path,
+        [string]$FileName,
+        [string]$Extension
+    )
+    $safe = if ($FileName) { $FileName } else { "output" }
+    $safe = $safe -replace '[\\/:*?"<>|]', '_'
+    if ($Extension -and -not $safe.EndsWith($Extension)) { $safe += $Extension }
+    if (-not $Path) { return (Join-Path (Get-Location) $safe) }
+    if ($Path.EndsWith("\") -or $Path.EndsWith("/")) { return (Join-Path $Path $safe) }
+    if ($Extension -and $Path.ToLowerInvariant().EndsWith($Extension.ToLowerInvariant())) { return $Path }
+    if (Test-Path $Path -PathType Container) { return (Join-Path $Path $safe) }
+    return $Path
+}
+
+
 function Handle-FlowCommand {
     param([string[]]$InputArgs)
     if (-not $InputArgs -or $InputArgs.Count -eq 0) {
@@ -166,7 +216,85 @@ function Handle-FlowCommand {
             if ($resp -ne $null) { Write-Info "Flow removed." }
         }
         "export" {
-            Write-Warn "flow export is not fully implemented yet. Use: m365cli run flow export ..."
+            $env = Get-ArgValue $parsed.Map "environmentName"
+            if (-not $env) { $env = Get-ArgValue $parsed.Map "env" }
+            $name = Get-ArgValue $parsed.Map "name"
+            if (-not $name) { $name = $parsed.Positionals | Select-Object -First 1 }
+            $format = Get-ArgValue $parsed.Map "format"
+            $pathOut = Get-ArgValue $parsed.Map "path"
+            if (-not $format) { $format = "zip" }
+            if (-not $env -or -not $name) {
+                Write-Warn "Usage: flow export --environmentName <env> --name <flowId> [--format json|zip] [--path <file|folder>]"
+                return
+            }
+
+            if ($format.ToLowerInvariant() -eq "json") {
+                $info = Invoke-FlowRequest -Method "GET" -Path ("/providers/Microsoft.ProcessSimple/environments/" + $env + "/flows/" + $name)
+                $display = if ($info -and $info.properties -and $info.properties.displayName) { $info.properties.displayName } else { $name }
+                $arm = Invoke-FlowRequest -Method "POST" -Path ("/providers/Microsoft.ProcessSimple/environments/" + $env + "/flows/" + $name + "/exportToARMTemplate")
+                if (-not $arm) { return }
+                $target = Resolve-OutputFilePath $pathOut $display ".json"
+                $arm | ConvertTo-Json -Depth 20 | Set-Content -Path $target -Encoding ASCII
+                Write-Info ("Saved: " + $target)
+                return
+            }
+
+            $res = Invoke-PpRequestRaw -Method "POST" -Path ("/providers/Microsoft.BusinessAppPlatform/environments/" + $env + "/listPackageResources") -ApiVersion "2016-11-01" -Body @{
+                baseResourceIds = @("/providers/Microsoft.Flow/flows/" + $name)
+            }
+            if (-not $res -or -not $res.Body) { return }
+            $resources = $res.Body.resources
+            if (-not $resources) { Write-Warn "Package resources missing."; return }
+            foreach ($k in $resources.Keys) {
+                if ($resources[$k].type -eq "Microsoft.Flow/flows") {
+                    $resources[$k].suggestedCreationType = "Update"
+                } else {
+                    $resources[$k].suggestedCreationType = "Existing"
+                }
+            }
+            $details = @{
+                displayName       = Get-ArgValue $parsed.Map "packageDisplayName"
+                description       = Get-ArgValue $parsed.Map "packageDescription"
+                creator           = Get-ArgValue $parsed.Map "packageCreatedBy"
+                sourceEnvironment = Get-ArgValue $parsed.Map "packageSourceEnvironment"
+            }
+            $export = Invoke-PpRequestRaw -Method "POST" -Path ("/providers/Microsoft.BusinessAppPlatform/environments/" + $env + "/exportPackage") -ApiVersion "2016-11-01" -Body @{
+                includedResourceIds = @("/providers/Microsoft.Flow/flows/" + $name)
+                details             = $details
+                resources           = $resources
+            }
+            if (-not $export -or -not $export.Headers) { return }
+            $location = $export.Headers.Location
+            if (-not $location) { Write-Warn "Export location missing."; return }
+            $status = "Running"
+            $packageLink = $null
+            for ($i = 0; $i -lt 120 -and $status -eq "Running"; $i++) {
+                Start-Sleep -Seconds 5
+                try {
+                    $resp = Invoke-RestMethod -Method Get -Uri $location -Headers @{ Authorization = "Bearer " + (Get-PpToken); accept = "application/json" }
+                    $status = $resp.properties.status
+                    if ($status -eq "Succeeded") {
+                        $packageLink = $resp.properties.packageLink.value
+                        break
+                    }
+                } catch {
+                    Write-Err $_.Exception.Message
+                    return
+                }
+            }
+            if (-not $packageLink) {
+                Write-Warn "Package export did not complete."
+                return
+            }
+            $fileName = Get-ArgValue $parsed.Map "packageDisplayName"
+            if (-not $fileName) { $fileName = $name }
+            $target = Resolve-OutputFilePath $pathOut $fileName ".zip"
+            try {
+                Invoke-WebRequest -Uri $packageLink -OutFile $target -Headers @{ "x-anonymous" = "true" } | Out-Null
+                Write-Info ("Saved: " + $target)
+            } catch {
+                Write-Err $_.Exception.Message
+            }
         }
         "run" {
             if (-not $rest -or $rest.Count -eq 0) {

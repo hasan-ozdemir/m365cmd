@@ -66,7 +66,7 @@ function Show-Help {
         "bookings Microsoft Bookings (Graph)",
         "orgx     Org Explorer (manager/direct reports)",
         "whiteboard Whiteboard files (OneDrive) helper",
-        "apps     App catalog + portal/CLI bridging",
+        "apps     App catalog + portal/command mappings",
         "insights Personal insights (shared/trending/used)",
         "connections Viva Connections helpers (SharePoint-backed)",
         "engage   Viva Engage/Yammer helpers",
@@ -115,7 +115,6 @@ function Show-Help {
         "spp      SharePoint Premium",
         "spfx     SharePoint Framework",
         "m365     Native CLI-compatible command group",
-        "m365cli  CLI for Microsoft 365 bridge",
         "connection Saved connections manager",
         "context  CLI context options (defaults)",
         "module   Module install/list/update/remove"
@@ -688,7 +687,9 @@ function Show-Help {
             "apps list [--json]",
             "apps get <appId|name>",
             "apps open <appId|name>",
-            "apps cli <appId|name> [--cmd <m365 prefix>] <args...>"
+            "apps map list|set|remove|show|run",
+            "apps cli <appId|name> [--cmd <m365cmd prefix>] <args...>",
+            "apps run <appId|name> <args...>"
         )
         "m365" = @(
             "m365 status",
@@ -698,15 +699,6 @@ function Show-Help {
             "m365 search <...> (same as: search ...)",
             "m365 version",
             "m365 docs"
-        )
-        "m365cli" = @(
-            "m365cli status|install|path",
-            "m365cli source path|clone|update",
-            "m365cli inventory [--refresh] [--area <name>] [--filter <text>] [--json]",
-            "m365cli parity [--refresh] [--json]",
-            "m365cli app list|set|remove|show|run",
-            "m365cli run <m365 args...>",
-            "m365cli <m365 args...> (pass-through)"
         )
         "module"  = @("module list|install|update|remove <name>")
         "connection" = @(
@@ -779,7 +771,13 @@ function Show-Help {
         "spfx" = @(
             "spfx doctor",
             "spfx package generate",
-            "spfx project doctor|rename|upgrade|externalize|github|azuredevops|permissions"
+            "spfx project doctor",
+            "spfx project rename --name <newName>",
+            "spfx project upgrade --version <spfxVersion>",
+            "spfx project externalize --cdnBasePath <url> [--includeClientSideAssets true|false]",
+            "spfx project github --path <workflowPath> [--nodeVersion <ver>] [--force]",
+            "spfx project azuredevops --path <pipelinePath> [--nodeVersion <ver>] [--branch <branch>] [--force]",
+            "spfx project permissions list|grant [--force]"
         )
         "tenant"  = @("/tenant show", "/tenant set prefix <value>", "/tenant set domain <value>", "/tenant set id <value>")
         "config"  = @("/config show", "/config get <path>", "/config set <path> <json-or-text>")

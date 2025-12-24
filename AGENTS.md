@@ -17,10 +17,10 @@ This repository hosts **m365cmd**, a portable PowerShell Core REPL for Microsoft
 ## Build, Test, and Development Commands
 
 - Run REPL: `m365cmd.cmd` or `./m365cmd.sh`.
-- Basic tests: `pwsh -NoProfile -File .\tests\Run-Tests.ps1`.
-- Module checks: `pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Modules`.
-- Integration tests: `pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Integration`.
-- Write tests (creates/deletes data): `pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Write`.
+- Basic tests: `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1`.
+- Module checks: `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Modules`.
+- Integration tests: `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Integration`.
+- Write tests (creates/deletes data): `Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Write`.
 
 ## Coding Style & Naming Conventions
 

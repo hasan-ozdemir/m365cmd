@@ -13,7 +13,7 @@ Thanks for your interest in contributing to **m365cmd**. This project is a Power
 ## Development Setup
 
 - PowerShell Core 7+ is required.
-- Optional: Node.js 20+ LTS for CLI for Microsoft 365 integration.
+- Optional: Node.js 18+ LTS for SPFx project packaging commands.
 
 Run the REPL:
 
@@ -32,15 +32,15 @@ m365cmd.cmd
 Use the Pester test runner:
 
 ```powershell
-pwsh -NoProfile -File .\tests\Run-Tests.ps1
+Powershell Core -NoProfile -File .\tests\Run-Tests.ps1
 ```
 
 Other test modes:
 
 ```powershell
-pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Modules
-pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Integration
-pwsh -NoProfile -File .\tests\Run-Tests.ps1 -Write
+Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Modules
+Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Integration
+Powershell Core -NoProfile -File .\tests\Run-Tests.ps1 -Write
 ```
 
 ## Coding Conventions
