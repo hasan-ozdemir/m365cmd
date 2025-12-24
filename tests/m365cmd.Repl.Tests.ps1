@@ -35,7 +35,7 @@ Describe "REPL and parsing" {
     }
 
     It "expands aliases" {
-        $expanded = Expand-AliasCommand -Cmd "u" -Args @("list") -IsGlobal:$false
+        $expanded = Expand-AliasCommand -Cmd "u" -InputArgs @("list") -IsGlobal:$false
         $expanded.Count | Should -BeGreaterThan 0
     }
 }

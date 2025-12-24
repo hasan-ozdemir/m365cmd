@@ -51,21 +51,21 @@ function Invoke-PpRequestWithHeaders {
 }
 
 function Handle-PowerPagesCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: powerpages site list|get|create|delete|restart --env <environmentId> OR powerpages op status --url <operationUrl>"
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
+    $sub = $InputArgs[0].ToLowerInvariant()
     $action = $sub
     $rest = @()
     if ($sub -eq "op" -or $sub -eq "operation") {
-        if ($Args.Count -lt 2) {
+        if ($InputArgs.Count -lt 2) {
             Write-Warn "Usage: powerpages op status --url <operationUrl>"
             return
         }
-        $action = $Args[1].ToLowerInvariant()
-        $rest = if ($Args.Count -gt 2) { $Args[2..($Args.Count - 1)] } else { @() }
+        $action = $InputArgs[1].ToLowerInvariant()
+        $rest = if ($InputArgs.Count -gt 2) { $InputArgs[2..($InputArgs.Count - 1)] } else { @() }
         switch ($action) {
             "status" {
                 $parsed = Parse-NamedArgs $rest
@@ -88,14 +88,14 @@ function Handle-PowerPagesCommand {
         }
     }
     if ($sub -eq "site" -or $sub -eq "sites") {
-        if ($Args.Count -lt 2) {
+        if ($InputArgs.Count -lt 2) {
             Write-Warn "Usage: powerpages site list|get|create|delete|restart --env <environmentId>"
             return
         }
-        $action = $Args[1].ToLowerInvariant()
-        $rest = if ($Args.Count -gt 2) { $Args[2..($Args.Count - 1)] } else { @() }
+        $action = $InputArgs[1].ToLowerInvariant()
+        $rest = if ($InputArgs.Count -gt 2) { $InputArgs[2..($InputArgs.Count - 1)] } else { @() }
     } else {
-        $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+        $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     }
     $parsed = Parse-NamedArgs $rest
     $env = Get-ArgValue $parsed.Map "env"
@@ -201,3 +201,4 @@ function Handle-PowerPagesCommand {
         }
     }
 }
+

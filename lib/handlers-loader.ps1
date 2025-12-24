@@ -67,3 +67,4 @@ if ($verbose) {
 if ($missing.Count -gt 0) {
     & $warn ("handlers.manifest.json references missing files: " + ($missing -join ", "))
 }
+

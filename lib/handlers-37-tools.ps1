@@ -18,13 +18,13 @@ function Get-M365CliPath {
 
 
 function Handle-M365CliCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
-        Write-Warn "Usage: m365cli status|install|path|app|run|inventory|source <args...> OR m365cli <m365 args...>"
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
+        Write-Warn "Usage: m365cli status|install|path|app|run|inventory|parity|source <args...> OR m365cli <m365 args...>"
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     switch ($sub) {
         "status" {
             $path = Get-M365CliPath
@@ -70,6 +70,9 @@ function Handle-M365CliCommand {
         }
         "inventory" {
             Handle-M365CliInventoryCommand $rest
+        }
+        "parity" {
+            Handle-M365CliParityCommand $rest
         }
         "run" {
             $path = Get-M365CliPath
@@ -126,13 +129,13 @@ function Save-M365CliAppMap {
 
 
 function Handle-M365CliAppCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: m365cli app list|set|remove|show|run"
         return
     }
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $map = Load-M365CliAppMap
 
     switch ($action) {
@@ -344,8 +347,8 @@ function Get-M365CliCommandInventory {
 
 
 function Handle-M365CliSourceCommand {
-    param([string[]]$Args)
-    $action = if ($Args.Count -gt 0) { $Args[0].ToLowerInvariant() } else { "" }
+    param([string[]]$InputArgs)
+    $action = if ($InputArgs.Count -gt 0) { $InputArgs[0].ToLowerInvariant() } else { "" }
     $repo = Get-M365CliRepoPath
     switch ($action) {
         "path" {
@@ -407,8 +410,8 @@ function Save-M365CliInventory {
 
 
 function Handle-M365CliInventoryCommand {
-    param([string[]]$Args)
-    $parsed = Parse-NamedArgs $Args
+    param([string[]]$InputArgs)
+    $parsed = Parse-NamedArgs $InputArgs
     $refresh = Parse-Bool (Get-ArgValue $parsed.Map "refresh") $false
     $area = Get-ArgValue $parsed.Map "area"
     $filter = Get-ArgValue $parsed.Map "filter"
@@ -443,3 +446,154 @@ function Handle-M365CliInventoryCommand {
         Write-Host ("Total commands: " + ($inventory | Measure-Object).Count)
     }
 }
+
+
+function Get-M365CmdLocalCommands {
+    $path = Join-Path $PSScriptRoot "handlers-99-dispatch.ps1"
+    if (-not (Test-Path $path)) { return @() }
+    $cmds = @()
+    foreach ($line in (Get-Content -Path $path)) {
+        if ($line -match '^\s*\"([a-z0-9]+)\"\s*\{') {
+            $cmds += $matches[1]
+        }
+    }
+    return ($cmds | Sort-Object -Unique)
+}
+
+
+function Get-M365CmdGlobalCommands {
+    $path = Join-Path $PSScriptRoot "handlers-99-dispatch.ps1"
+    if (-not (Test-Path $path)) { return @() }
+    $cmds = @()
+    $inGlobal = $false
+    foreach ($line in (Get-Content -Path $path)) {
+        if ($line -match 'function\s+Handle-GlobalCommand') { $inGlobal = $true; continue }
+        if ($inGlobal -and $line -match 'function\s+Handle-LocalCommand') { break }
+        if ($inGlobal -and $line -match '^\s*\"([a-z0-9]+)\"\s*\{') {
+            $cmds += $matches[1]
+        }
+    }
+    return ($cmds | Sort-Object -Unique)
+}
+
+
+function Get-M365CliParityPath {
+    return (Join-Path $Paths.Data "m365cli.parity.json")
+}
+
+
+function Handle-M365CliParityCommand {
+    param([string[]]$InputArgs)
+    $parsed = Parse-NamedArgs $InputArgs
+    $refresh = Parse-Bool (Get-ArgValue $parsed.Map "refresh") $false
+    $asJson = Parse-Bool (Get-ArgValue $parsed.Map "json") $false
+
+    $inventory = @()
+    if ($refresh -or -not (Test-Path (Get-M365CliInventoryPath))) {
+        $repo = Get-M365CliRepoPath
+        if (-not (Test-Path $repo)) {
+            Write-Warn "CLI source not found. Use: m365cli source clone"
+            return
+        }
+        $inventory = Get-M365CliCommandInventory -RepoPath $repo
+        Save-M365CliInventory $inventory
+    } else {
+        $inventory = Load-M365CliInventory
+    }
+
+    if (-not $inventory -or $inventory.Count -eq 0) {
+        Write-Warn "Inventory is empty. Use: m365cli inventory --refresh"
+        return
+    }
+
+    $cliAreas = @($inventory | ForEach-Object { ($_.Command -split '\s+')[0] } | Sort-Object -Unique)
+    $local = Get-M365CmdLocalCommands
+    $global = Get-M365CmdGlobalCommands
+
+    $areaMap = @{
+        "entra" = @("user","group","role","ca","device","authmethod","risk")
+        "aad" = @("user","group","role","ca","device","authmethod","risk")
+        "teams" = @("teams","chat","channelmsg","teamsapp","teamsappinst","teamstab")
+        "spo" = @("spo","site","splist","spage","spcolumn","spctype","spperm","file","drive")
+        "onedrive" = @("onedrive","file","drive")
+        "graph" = @("graph","search")
+        "outlook" = @("outlook","mail","calendar","contacts","people")
+        "planner" = @("planner")
+        "todo" = @("todo")
+        "viva" = @("viva","insights","connections","engage","learning")
+        "pp" = @("pp","powerapps","powerautomate","powerpages")
+        "booking" = @("bookings")
+    }
+
+    $rows = @()
+    foreach ($area in $cliAreas) {
+        $coveredBy = @()
+        if ($local -contains $area -or $global -contains $area) {
+            $coveredBy += $area
+        }
+        if ($areaMap.ContainsKey($area)) {
+            foreach ($mapped in $areaMap[$area]) {
+                if ($local -contains $mapped) { $coveredBy += $mapped }
+            }
+        }
+        $status = if ($coveredBy.Count -gt 0) { "partial" } else { "missing" }
+        $rows += [pscustomobject]@{
+            Area      = $area
+            Status    = $status
+            CoveredBy = ($coveredBy | Sort-Object -Unique) -join ","
+        }
+    }
+
+    Ensure-Directories
+    $rows | ConvertTo-Json -Depth 4 | Set-Content -Path (Get-M365CliParityPath) -Encoding ASCII
+
+    if ($asJson) {
+        $rows | ConvertTo-Json -Depth 4
+    } else {
+        $rows | Sort-Object Status, Area | Format-Table -AutoSize
+        Write-Host ("Areas checked: " + $rows.Count)
+        Write-Host ("Parity report saved: " + (Get-M365CliParityPath))
+    }
+}
+
+
+function Handle-M365Command {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
+        Write-Warn "Usage: m365 status|login|logout|request|search|version|docs"
+        return
+    }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
+    switch ($sub) {
+        "status" {
+            Show-Status
+        }
+        "login" {
+            Invoke-Login ($rest | Select-Object -First 1)
+        }
+        "logout" {
+            Invoke-Logout
+        }
+        "request" {
+            if (-not $rest -or $rest.Count -lt 2) {
+                Write-Warn "Usage: m365 request <get|post|patch|put|delete> <url|path> [--body <json>] [--bodyFile <path>] [--headers <json>] [--beta|--v1|--auto] [--out <file>]"
+                return
+            }
+            Handle-GraphCommand (@("req") + $rest)
+        }
+        "search" {
+            Handle-SearchCommand $rest
+        }
+        "version" {
+            Write-Host "m365cmd (native CLI port)"
+        }
+        "docs" {
+            Write-Host "Use /help or /help <topic> for command reference."
+        }
+        default {
+            Write-Warn "Unknown m365 command. Use: m365 status|login|logout|request|search|version|docs"
+        }
+    }
+}
+

@@ -53,7 +53,7 @@ function Get-PresetMap {
 function Expand-AliasCommand {
     param(
         [string]$Cmd,
-        [string[]]$Args,
+        [string[]]$InputArgs,
         [bool]$IsGlobal = $false
     )
     $map = Get-AliasMap -Global:$IsGlobal
@@ -65,7 +65,7 @@ function Expand-AliasCommand {
     if (-not $key) { return $null }
     $exp = $map[$key]
     if (-not $exp) { return $null }
-    $argText = if ($Args -and $Args.Count -gt 0) { $Args -join " " } else { "" }
+    $argText = if ($InputArgs -and $InputArgs.Count -gt 0) { $InputArgs -join " " } else { "" }
     $line = if ($exp -like "*{args}*") { $exp.Replace("{args}", $argText) } else { if ($argText) { $exp + " " + $argText } else { $exp } }
     $lines = Split-CommandSequence $line
     return ,$lines

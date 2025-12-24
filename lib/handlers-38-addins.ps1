@@ -29,13 +29,13 @@ function Get-ManifestBytes {
 
 
 function Handle-AddinCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: addin exo|org|onsend <...>"
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     switch ($sub) {
         "exo" { Handle-AddinExoCommand $rest }
         "outlook" { Handle-AddinExoCommand $rest }
@@ -52,15 +52,15 @@ function Handle-AddinCommand {
 
 
 function Handle-AddinExoCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: addin exo list|get|install|update|remove|enable|disable|refresh [--org] [--mailbox <upn>]"
         return
     }
     if (-not (Require-ExoConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $identity = $parsed.Positionals | Select-Object -First 1
 
@@ -244,15 +244,15 @@ function Handle-AddinExoCommand {
 
 
 function Handle-AddinOnSendCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: addin onsend status|enable|disable [--policy <name>] [--user <upn>] [--all] [--filter <filter>]"
         return
     }
     if (-not (Require-ExoConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $policy = Get-ArgValue $parsed.Map "policy"
     $user = Get-ArgValue $parsed.Map "user"
@@ -338,14 +338,14 @@ function Handle-AddinOnSendCommand {
 
 
 function Handle-AddinOrgCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: addin org connect|disconnect|status|list|get|create|update|remove|assign|enable|disable|refresh"
         return
     }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $id = $parsed.Positionals | Select-Object -First 1
     if (-not $id) { $id = Get-ArgValue $parsed.Map "productId" }
@@ -568,4 +568,5 @@ function Handle-AddinOrgCommand {
         }
     }
 }
+
 

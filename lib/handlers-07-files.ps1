@@ -1,15 +1,15 @@
 # Handler: Files
 # Purpose: Files command handlers.
 function Handle-DriveCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: drive list|get|delta"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     switch ($sub) {
@@ -65,15 +65,15 @@ function Handle-DriveCommand {
 
 
 function Handle-FileCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: file list|get|create|update|delete|download|convert|preview|upload|copy|move|share"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $base = Resolve-DriveBase $parsed.Map
     if (-not $base) { return }
@@ -479,15 +479,15 @@ function Handle-FileCommand {
 
 
 function Handle-MailCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: mail folder|message ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -in @("folder", "folders")) {
         if (-not $rest -or $rest.Count -eq 0) {
@@ -683,15 +683,15 @@ function Handle-MailCommand {
 
 
 function Handle-CalendarCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: calendar list|get|create|update|delete|view|event"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -in @("event", "events")) {
         if (-not $rest -or $rest.Count -eq 0) {
@@ -895,15 +895,15 @@ function Handle-CalendarCommand {
 
 
 function Handle-TodoCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: todo list|get|create|update|delete|task"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -in @("task", "tasks")) {
         if (-not $rest -or $rest.Count -eq 0) {
@@ -1084,15 +1084,15 @@ function Handle-TodoCommand {
 
 
 function Handle-OneNoteCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: onenote notebook|section|page ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -in @("notebook", "notebooks")) {
         if (-not $rest -or $rest.Count -eq 0) {
@@ -1368,15 +1368,15 @@ function Handle-OneNoteCommand {
 
 
 function Handle-ChatCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: chat list|get|create|message"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -in @("message", "messages", "msg")) {
         if (-not $rest -or $rest.Count -eq 0) {
@@ -1507,15 +1507,15 @@ function Handle-ChatCommand {
 
 
 function Handle-ChannelMessageCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: channelmsg list|get|create|update|delete --team <teamId> --channel <channelId>"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $team = Get-ArgValue $parsed.Map "team"
     $channel = Get-ArgValue $parsed.Map "channel"
@@ -1598,15 +1598,15 @@ function Handle-ChannelMessageCommand {
 
 
 function Handle-ContactsCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: contacts folder|item ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     if (-not $rest -or $rest.Count -eq 0) {
         Write-Warn "Usage: contacts folder|item ..."
         return
@@ -1753,15 +1753,15 @@ function Handle-ContactsCommand {
 }
 
 function Handle-PeopleCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: people list|get|create|update|delete [--user <upn|id>]"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -in @("create", "update", "delete")) {
         Write-Warn "People API is read-only. Redirecting to contacts item CRUD."
@@ -1802,15 +1802,15 @@ function Handle-PeopleCommand {
 
 
 function Handle-PlannerCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: planner plan|bucket|task ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     if (-not $rest -or $rest.Count -eq 0) {
         Write-Warn "Usage: planner plan|bucket|task ..."
         return
@@ -2113,15 +2113,15 @@ function Resolve-ExcelItemPath {
 
 
 function Handle-ExcelCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: excel workbook|worksheet|table|range|cell ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     if (-not $rest -or $rest.Count -eq 0) {
         Write-Warn "Usage: excel workbook|worksheet|table|range|cell ..."
         return
@@ -2363,19 +2363,20 @@ function Handle-ExcelCommand {
 
 
 function Handle-OneDriveCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: onedrive share <same args as: file share ...>"
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
+    $sub = $InputArgs[0].ToLowerInvariant()
     if ($sub -ne "share") {
         Write-Warn "Usage: onedrive share <same args as: file share ...>"
         return
     }
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     Handle-FileCommand (@("share") + $rest)
 }
+
 
 
 

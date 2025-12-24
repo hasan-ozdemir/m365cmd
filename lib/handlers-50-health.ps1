@@ -1,10 +1,10 @@
 # Handler: Health
 # Purpose: Health command handlers.
 function Handle-HealthCommand {
-    param([string[]]$Args)
+    param([string[]]$InputArgs)
     if (-not (Require-GraphConnection)) { return }
-    $sub = if ($Args -and $Args.Count -gt 0) { $Args[0].ToLowerInvariant() } else { "list" }
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = if ($InputArgs -and $InputArgs.Count -gt 0) { $InputArgs[0].ToLowerInvariant() } else { "list" }
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     switch ($sub) {
@@ -36,3 +36,4 @@ function Handle-HealthCommand {
         Write-Err $_.Exception.Message
     }
 }
+

@@ -24,15 +24,15 @@ function Resolve-SiteId {
 
 
 function Handle-SiteCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: site list|get ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     switch ($sub) {
@@ -70,15 +70,15 @@ function Handle-SiteCommand {
 
 
 function Handle-SPListCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: splist list|get|create|update|delete|delta|item"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -eq "item" -or $sub -eq "items") {
         if (-not $rest -or $rest.Count -eq 0) {
@@ -269,15 +269,15 @@ function Handle-SPListCommand {
 
 
 function Handle-SPPageCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: spage list|get|create|update|delete|publish --site <siteId|url|hostname:/path:>"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $siteId = Resolve-SiteId (Get-ArgValue $parsed.Map "site")
     if (-not $siteId) {
@@ -372,15 +372,15 @@ function Handle-SPPageCommand {
 
 
 function Handle-SPColumnCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: spcolumn list|get|create|update|delete --site <siteId|url|hostname:/path:> [--list <listId>]"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $siteId = Resolve-SiteId (Get-ArgValue $parsed.Map "site")
     $listId = Get-ArgValue $parsed.Map "list"
@@ -457,15 +457,15 @@ function Handle-SPColumnCommand {
 
 
 function Handle-SPContentTypeCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: spctype list|get|create|update|delete --site <siteId|url|hostname:/path:> [--list <listId>]"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $siteId = Resolve-SiteId (Get-ArgValue $parsed.Map "site")
     $listId = Get-ArgValue $parsed.Map "list"
@@ -542,15 +542,15 @@ function Handle-SPContentTypeCommand {
 
 
 function Handle-SPPermissionCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: spperm list|get|grant|delete --site <siteId|url|hostname:/path:>"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $siteId = Resolve-SiteId (Get-ArgValue $parsed.Map "site")
     if (-not $siteId) {
@@ -605,3 +605,4 @@ function Handle-SPPermissionCommand {
         }
     }
 }
+

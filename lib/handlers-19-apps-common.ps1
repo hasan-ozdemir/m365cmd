@@ -54,12 +54,13 @@ function Invoke-FileTypeSearch {
 
 function Build-FileArgsFromMap {
     param([hashtable]$Map)
-    $args = @()
-    if (-not $Map) { return $args }
+    $InputArgs = @()
+    if (-not $Map) { return $InputArgs }
     foreach ($k in @("user","drive","site","group","top","skip","select","filter","orderby","search","expand")) {
         $v = Get-ArgValue $Map $k
-        if ($v) { $args += @("--" + $k, $v) }
+        if ($v) { $InputArgs += @("--" + $k, $v) }
     }
-    if ($Map.ContainsKey("beta")) { $args += "--beta" }
-    return $args
+    if ($Map.ContainsKey("beta")) { $InputArgs += "--beta" }
+    return $InputArgs
 }
+

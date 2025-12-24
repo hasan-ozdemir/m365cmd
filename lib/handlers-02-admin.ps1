@@ -1,8 +1,8 @@
 # Handler: Admin
 # Purpose: Admin command handlers.
 function Handle-ModuleCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0 -or $Args[0] -eq "list") {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0 -or $InputArgs[0] -eq "list") {
         $required = @($global:Config.modules.required)
         $optional = @($global:Config.modules.optional)
         Write-Host "Required modules:"
@@ -18,8 +18,8 @@ function Handle-ModuleCommand {
         return
     }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $name = if ($Args.Count -ge 2) { $Args[1] } else { "" }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $name = if ($InputArgs.Count -ge 2) { $InputArgs[1] } else { "" }
     if (-not $name) {
         Write-Warn "Module name required."
         return
@@ -363,15 +363,15 @@ function Invoke-GroupDeleteOperation {
 
 
 function Handle-UserCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: user list|get|create|update|delete|bulkdelete|props|apps|roles|enable|disable|password|upn|email|alias|session|mfa|license"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     if ($sub -eq "username" -or $sub -eq "name") { $sub = "upn" }
     if ($sub -eq "passwd") { $sub = "password" }
@@ -833,15 +833,15 @@ function Handle-UserCommand {
 
 
 function Handle-LicenseCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: license list|assign|remove|update"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     switch ($sub) {
@@ -931,15 +931,15 @@ function Handle-LicenseCommand {
 
 
 function Handle-RoleCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: role list|assign|remove|templates|definitions|assignments"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $useBeta = $parsed.Map.ContainsKey("beta")
     $useV1 = $parsed.Map.ContainsKey("v1")
@@ -1139,15 +1139,15 @@ function Handle-RoleCommand {
 
 
 function Handle-GroupCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: group list|get|create|update|delete|bulkdelete|member|owner"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     switch ($sub) {
@@ -1453,15 +1453,15 @@ function Handle-GroupCommand {
 
 
 function Handle-DomainCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: domain list|get|add|verify|default|dns"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     switch ($sub) {
@@ -1550,15 +1550,15 @@ function Handle-DomainCommand {
 
 
 function Handle-AppCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: app list|get|create|update|delete|redirect|secret|cert|perm|consent|guide"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     switch ($sub) {
@@ -2012,15 +2012,15 @@ function Handle-AppCommand {
 
 
 function Handle-OrgCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: org list|get|update"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     $useBeta = $parsed.Map.ContainsKey("beta")
@@ -2087,15 +2087,15 @@ function Handle-OrgCommand {
 
 
 function Handle-DirSettingCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: dirsetting list|get|create|update|delete|template"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -in @("template", "templates")) {
         $action = if ($rest.Count -gt 0) { $rest[0].ToLowerInvariant() } else { "list" }
@@ -2237,5 +2237,6 @@ function Handle-DirSettingCommand {
         }
     }
 }
+
 
 

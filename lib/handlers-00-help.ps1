@@ -101,6 +101,7 @@ function Show-Help {
         "accessreview Access reviews (Identity Governance)",
         "graph    Graph cmdlets, metadata, generic CRUD",
         "webhook  Local webhook listener helper",
+        "m365     Native CLI-compatible command group",
         "m365cli  CLI for Microsoft 365 bridge",
         "module   Module install/list/update/remove"
     )
@@ -674,10 +675,20 @@ function Show-Help {
             "apps open <appId|name>",
             "apps cli <appId|name> [--cmd <m365 prefix>] <args...>"
         )
+        "m365" = @(
+            "m365 status",
+            "m365 login [interactive|device]",
+            "m365 logout",
+            "m365 request <get|post|patch|put|delete> <url|path> [--body <json>] [--bodyFile <path>] [--headers <json>] [--beta|--v1|--auto] [--out <file>]",
+            "m365 search <...> (same as: search ...)",
+            "m365 version",
+            "m365 docs"
+        )
         "m365cli" = @(
             "m365cli status|install|path",
             "m365cli source path|clone|update",
             "m365cli inventory [--refresh] [--area <name>] [--filter <text>] [--json]",
+            "m365cli parity [--refresh] [--json]",
             "m365cli app list|set|remove|show|run",
             "m365cli run <m365 args...>",
             "m365cli <m365 args...> (pass-through)"
@@ -712,6 +723,7 @@ function Show-Help {
         Write-Warn "No help found for: $Topic"
     }
 }
+
 
 
 

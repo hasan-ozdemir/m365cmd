@@ -1,13 +1,13 @@
 # Handler: Alias
 # Purpose: Alias and preset management commands.
 function Handle-AliasCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: alias list|get|set|remove [--global|--local]"
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $isGlobal = $parsed.Map.ContainsKey("global")
     $scope = if ($isGlobal) { "global" } else { "local" }
@@ -62,13 +62,13 @@ function Handle-AliasCommand {
 
 
 function Handle-PresetCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: preset list|get|set|remove|run"
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     if (-not $global:Config.presets) { $global:Config | Add-Member -NotePropertyName presets -NotePropertyValue @{} -Force }
     $map = $global:Config.presets
@@ -108,8 +108,8 @@ function Handle-PresetCommand {
             $name = $parsed.Positionals | Select-Object -First 1
             if (-not $name) { Write-Warn "Usage: preset run <name> [args...]"; return }
             if (-not $map.ContainsKey($name)) { Write-Warn "Preset not found."; return }
-            $args = $parsed.Positionals | Select-Object -Skip 1
-            $argText = if ($args) { $args -join " " } else { "" }
+            $InputArgs = $parsed.Positionals | Select-Object -Skip 1
+            $argText = if ($InputArgs) { $InputArgs -join " " } else { "" }
             $exp = $map[$name]
             $line = if ($exp -like "*{args}*") { $exp.Replace("{args}", $argText) } else { if ($argText) { $exp + " " + $argText } else { $exp } }
             $commands = Split-CommandSequence $line
@@ -128,3 +128,4 @@ function Handle-PresetCommand {
         }
     }
 }
+

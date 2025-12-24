@@ -10,3 +10,4 @@ function Resolve-CAApiSettings {
     $api = if ($useBeta) { "beta" } elseif ($useV1) { "v1" } else { "" }
     return [pscustomobject]@{ Api = $api; AllowFallback = $allowFallback }
 }
+

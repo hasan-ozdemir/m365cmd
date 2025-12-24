@@ -73,15 +73,15 @@ function Write-ExcelRowsTable {
 }
 
 function Handle-FormsExcelCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: forms excel tables|rows|watch ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $itemPath = Resolve-FormsExcelItemPath $parsed.Map
     if (-not $itemPath) { return }
@@ -167,15 +167,15 @@ function Handle-FormsExcelCommand {
 }
 
 function Handle-FormsAdminCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: forms admin get|update"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $path = "/admin/forms"
 
@@ -206,15 +206,15 @@ function Handle-FormsAdminCommand {
 }
 
 function Handle-FormsReportCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: forms report list|run"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $reports = @(
         "getFormsUserActivityUserCounts",
@@ -275,13 +275,13 @@ function Handle-FormsReportCommand {
 }
 
 function Handle-FormsFlowCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: forms flow list|get|runs|actions --env <environmentId> [--name <text>] [--contains <text>] [--workflowId <id>]"
         return
     }
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $env = Get-ArgValue $parsed.Map "env"
     if (-not $env) { $env = Get-ArgValue $parsed.Map "environment" }
@@ -378,15 +378,15 @@ function Handle-FormsFlowCommand {
 }
 
 function Handle-FormsRawCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -lt 2) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -lt 2) {
         Write-Warn "Usage: forms raw <get|post|patch|put|delete> <path> [--body <json>] [--bodyFile <path>] [--out <file>]"
         return
     }
     Write-Warn "Forms raw uses Forms service endpoints that may be unsupported or change without notice."
-    $method = $Args[0].ToUpperInvariant()
-    $path = $Args[1]
-    $rest = if ($Args.Count -gt 2) { $Args[2..($Args.Count - 1)] } else { @() }
+    $method = $InputArgs[0].ToUpperInvariant()
+    $path = $InputArgs[1]
+    $rest = if ($InputArgs.Count -gt 2) { $InputArgs[2..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $bodyRaw = Get-ArgValue $parsed.Map "body"
     $bodyFile = Get-ArgValue $parsed.Map "bodyFile"
@@ -417,13 +417,13 @@ function Handle-FormsRawCommand {
 }
 
 function Handle-FormsCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: forms open|info|admin|report|raw|excel|flow ..."
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     switch ($sub) {
         "open" {
             Write-Host "https://forms.office.com/"
@@ -439,3 +439,4 @@ function Handle-FormsCommand {
         default  { Write-Warn "Usage: forms open|info|admin|report|raw|excel|flow ..." }
     }
 }
+

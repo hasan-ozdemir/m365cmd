@@ -1,13 +1,13 @@
 # Handler: Sway
 # Purpose: Sway command handlers.
 function Handle-SwayCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: sway open [swayId|url] | sway uri --command <cmd> [--param k=v[,k=v]] [--url <url>]"
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     switch ($sub) {
         "open" {
             $id = $rest | Select-Object -First 1
@@ -38,3 +38,4 @@ function Handle-SwayCommand {
         default { Write-Warn "Usage: sway open [swayId|url] | sway uri --command <cmd> [--param k=v[,k=v]] [--url <url>]" }
     }
 }
+

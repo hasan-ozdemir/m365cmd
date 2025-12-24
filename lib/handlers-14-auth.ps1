@@ -8,15 +8,15 @@ function Resolve-AuthUserSegment {
 }
 
 function Handle-AuthMethodCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: authmethod list|get|delete|phone|email|tap ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $seg = Resolve-AuthUserSegment $parsed.Map
     if (-not $seg) { return }
@@ -309,3 +309,4 @@ function Handle-AuthMethodCommand {
 
     Write-Warn "Usage: authmethod list|get|delete|phone|email|tap ..."
 }
+

@@ -1,13 +1,13 @@
 # Handler: Learning
 # Purpose: Learning command handlers.
 function Handle-LearningCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: learning provider|content|activity ..."
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     switch ($sub) {
         "provider" { Handle-VivaCommand (@("provider") + $rest) }
         "content" { Handle-VivaCommand (@("content") + $rest) }
@@ -17,14 +17,14 @@ function Handle-LearningCommand {
 }
 
 function Handle-LearningActivityCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: learning activity list|get|create|delete [--user <upn|id>] [--beta|--auto]"
         return
     }
     if (-not (Require-GraphConnection)) { return }
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $user = Get-ArgValue $parsed.Map "user"
     $useBeta = $parsed.Map.ContainsKey("beta")
@@ -84,3 +84,4 @@ function Handle-LearningActivityCommand {
         }
     }
 }
+

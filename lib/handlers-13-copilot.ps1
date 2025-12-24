@@ -414,15 +414,15 @@ function Write-CopilotStreamText {
 
 
 function Handle-CopilotChatCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: copilot chat create|send|ask|stream"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
 
     switch ($action) {
@@ -597,15 +597,15 @@ function Handle-CopilotChatCommand {
 
 
 function Handle-CopilotSearchCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: copilot search --query <text> [--path <url>] [--pageSize <n>]"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     if ($action -eq "next") {
         $parsed = Parse-NamedArgs $rest
         $url = Get-ArgValue $parsed.Map "url"
@@ -649,7 +649,7 @@ function Handle-CopilotSearchCommand {
         }
     }
 
-    $parsed = Parse-NamedArgs $Args
+    $parsed = Parse-NamedArgs $InputArgs
     $query = Get-ArgValue $parsed.Map "query"
     if (-not $query) {
         $query = $parsed.Positionals | Select-Object -First 1
@@ -713,16 +713,16 @@ function Handle-CopilotSearchCommand {
 
 
 function Handle-CopilotRetrieveCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: copilot retrieve --query <text> --source sharePoint|oneDriveBusiness|externalItem [--max <n>]"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
+    $action = $InputArgs[0].ToLowerInvariant()
     if ($action -in @("list","open","download")) {
-        $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+        $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
         $parsed = Parse-NamedArgs $rest
         $hits = $global:CopilotLastRetrievalHits
         if (-not $hits) {
@@ -752,7 +752,7 @@ function Handle-CopilotRetrieveCommand {
     }
 
     if ($action -in @("ask","chat")) {
-        $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+        $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
         $parsed2 = Parse-NamedArgs $rest
         $prompt = Get-ArgValue $parsed2.Map "text"
         if (-not $prompt) { $prompt = Get-ArgValue $parsed2.Map "prompt" }
@@ -801,7 +801,7 @@ function Handle-CopilotRetrieveCommand {
         return
     }
 
-    $parsed = Parse-NamedArgs $Args
+    $parsed = Parse-NamedArgs $InputArgs
     $jsonRaw = Get-ArgValue $parsed.Map "json"
     $bodyFile = Get-ArgValue $parsed.Map "bodyFile"
     $useBeta = $parsed.Map.ContainsKey("beta")
@@ -868,13 +868,13 @@ function Handle-CopilotRetrieveCommand {
 
 
 function Handle-CopilotCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: copilot chat|search|retrieve ..."
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     switch ($sub) {
         "chat"     { Handle-CopilotChatCommand $rest }
         "search"   { Handle-CopilotSearchCommand $rest }
@@ -882,3 +882,4 @@ function Handle-CopilotCommand {
         default    { Write-Warn "Usage: copilot chat|search|retrieve ..." }
     }
 }
+

@@ -1,15 +1,15 @@
 # Handler: Graph
 # Purpose: Graph command handlers.
 function Handle-SubscriptionCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: subscription list|get|create|update|delete"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $useBeta = Parse-Bool (Get-ArgValue $parsed.Map "beta") $false
     $base = "/subscriptions"
@@ -76,15 +76,15 @@ function Handle-SubscriptionCommand {
 
 
 function Handle-TeamsTabCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: teamstab list|get|create|update|delete --team <teamId> --channel <channelId> OR --chat <chatId>"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $team = Get-ArgValue $parsed.Map "team"
     $channel = Get-ArgValue $parsed.Map "channel"
@@ -161,15 +161,15 @@ function Handle-TeamsTabCommand {
 
 
 function Handle-TeamsAppCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: teamsapp list|get|update|delete"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $useBeta = Parse-Bool (Get-ArgValue $parsed.Map "beta") $false
     $base = "/appCatalogs/teamsApps"
@@ -246,15 +246,15 @@ function Handle-TeamsAppCommand {
 }
 
 function Handle-TeamsAppInstallCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: teamsappinst list|get|add|remove --team <teamId>|--chat <chatId>|--user <upn|id>"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $team = Get-ArgValue $parsed.Map "team"
     $chat = Get-ArgValue $parsed.Map "chat"
@@ -343,15 +343,15 @@ function Handle-TeamsAppInstallCommand {
 
 
 function Handle-MeetingCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: meeting transcript|recording ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     if ($sub -in @("list", "get", "create", "update", "delete")) {
         $parsed = Parse-NamedArgs $rest
         $userSeg = Resolve-UserSegment (Get-ArgValue $parsed.Map "user")
@@ -527,15 +527,15 @@ function Handle-MeetingCommand {
 
 
 function Handle-SearchCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: search query --entity <type> --text <query> OR --requestsJson <payload>"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     if ($sub -ne "query") {
         Write-Warn "Usage: search query ..."
         return
@@ -569,15 +569,15 @@ function Handle-SearchCommand {
 
 
 function Handle-ExternalConnectionCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: extconn list|get|create|update|delete|item"
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $sub = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $sub = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($sub -eq "item" -or $sub -eq "items") {
         if (-not $rest -or $rest.Count -eq 0) {
@@ -723,14 +723,14 @@ function Handle-ExternalConnectionCommand {
 
 
 function Handle-GraphCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: graph cmdlets|perms|req|meta|get|list|create|update|delete|action|batch"
         return
     }
-    $sub = $Args[0].ToLowerInvariant()
+    $sub = $InputArgs[0].ToLowerInvariant()
     if ($sub -ne "meta" -and -not (Ensure-GraphModule)) { return }
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     switch ($sub) {
         "cmdlets" {
@@ -1184,5 +1184,6 @@ function Handle-GraphCommand {
         }
     }
 }
+
 
 

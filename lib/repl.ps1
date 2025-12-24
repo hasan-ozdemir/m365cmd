@@ -18,7 +18,7 @@ function Invoke-CommandLine {
     $cmd = $parts[0].ToLowerInvariant()
     $args = if ($parts.Count -gt 1) { $parts[1..($parts.Count - 1)] } else { @() }
 
-    $expanded = Expand-AliasCommand -Cmd $cmd -Args $args -IsGlobal:$isGlobal
+    $expanded = Expand-AliasCommand -Cmd $cmd -InputArgs $args -IsGlobal:$isGlobal
     if ($expanded -and $expanded.Count -gt 0) {
         foreach ($lineItem in $expanded) {
             $cont = Invoke-CommandLine -Line $lineItem -Depth ($Depth + 1)

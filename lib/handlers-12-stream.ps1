@@ -54,15 +54,15 @@ function Invoke-StreamSearch {
 }
 
 function Handle-StreamCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
         Write-Warn "Usage: stream open|list|search|file ..."
         return
     }
     if (-not (Require-GraphConnection)) { return }
 
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
 
     if ($action -eq "open") {
         Write-Host "https://stream.microsoft.com/"
@@ -128,3 +128,4 @@ function Handle-StreamCommand {
         Write-GraphTable $hits @("Name","Id","Size","LastModifiedDateTime","WebUrl")
     }
 }
+

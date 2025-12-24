@@ -1,12 +1,12 @@
 # Handler: Whiteboard
 # Purpose: Whiteboard command handlers.
 function Handle-WhiteboardCommand {
-    param([string[]]$Args)
-    if (-not $Args -or $Args.Count -eq 0) {
-        $Args = @("list")
+    param([string[]]$InputArgs)
+    if (-not $InputArgs -or $InputArgs.Count -eq 0) {
+        $InputArgs = @("list")
     }
-    $action = $Args[0].ToLowerInvariant()
-    $rest = if ($Args.Count -gt 1) { $Args[1..($Args.Count - 1)] } else { @() }
+    $action = $InputArgs[0].ToLowerInvariant()
+    $rest = if ($InputArgs.Count -gt 1) { $InputArgs[1..($InputArgs.Count - 1)] } else { @() }
     $parsed = Parse-NamedArgs $rest
     $path = Get-ArgValue $parsed.Map "path"
     $item = $parsed.Positionals | Select-Object -First 1
@@ -35,3 +35,4 @@ function Handle-WhiteboardCommand {
     if ($extraPos.Count -gt 0) { $newArgs += $extraPos }
     Handle-FileCommand $newArgs
 }
+
